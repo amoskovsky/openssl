@@ -741,6 +741,13 @@ static int tls1_check_cert_param(SSL *s, X509 *x, int set_ee_md)
 	pkey = X509_get_pubkey(x);
 	if (!pkey)
 		return 0;
+	/* DSTU key, set digest */
+	if (NID_dstu4145le == pkey->type)
+	{
+		s->cert->pkeys[SSL_PKEY_DSTU].digest = EVP_dstu34311();
+		EVP_PKEY_free(pkey);
+		return 1;
+	}
 	/* If not EC nothing to do */
 	if (pkey->type != EVP_PKEY_EC)
 		{
@@ -889,6 +896,12 @@ static int tls1_check_cert_param(SSL *s, X509 *x, int set_ee_md)
 #define tlsext_sigalg_ecdsa(md) md, TLSEXT_signature_ecdsa,
 #endif
 
+#ifdef OPENSSL_NO_DSTU
+#define tlsext_sigalg_dstu(md) /* */
+#else
+#define tlsext_sigalg_dstu(md) md, TLSEXT_signature_dstu,
+#endif
+
 #define tlsext_sigalg(md) \
 		tlsext_sigalg_rsa(md) \
 		tlsext_sigalg_dsa(md) \
@@ -905,6 +918,9 @@ static unsigned char tls12_sigalgs[] = {
 #endif
 #ifndef OPENSSL_NO_SHA
 	tlsext_sigalg(TLSEXT_hash_sha1)
+#endif
+#ifndef OPENSSL_NO_DSTU
+	tlsext_sigalg_dstu(TLSEXT_hash_dstu)
 #endif
 };
 #ifndef OPENSSL_NO_ECDSA
@@ -3504,13 +3520,15 @@ static tls12_lookup tls12_md[] = {
 	{NID_sha224, TLSEXT_hash_sha224},
 	{NID_sha256, TLSEXT_hash_sha256},
 	{NID_sha384, TLSEXT_hash_sha384},
-	{NID_sha512, TLSEXT_hash_sha512}
+	{NID_sha512, TLSEXT_hash_sha512},
+	{NID_dstu34311, TLSEXT_hash_dstu}
 };
 
 static tls12_lookup tls12_sig[] = {
 	{EVP_PKEY_RSA, TLSEXT_signature_rsa},
 	{EVP_PKEY_DSA, TLSEXT_signature_dsa},
-	{EVP_PKEY_EC, TLSEXT_signature_ecdsa}
+	{EVP_PKEY_EC, TLSEXT_signature_ecdsa},
+	{NID_dstu4145le, TLSEXT_signature_dstu}
 };
 
 static int tls12_find_id(int nid, tls12_lookup *table, size_t tlen)
@@ -3585,10 +3603,15 @@ static const tls12_hash_info tls12_md_info[] = {
 #endif
 #ifdef OPENSSL_NO_SHA512
 	{NID_sha384, 192, 0},
-	{NID_sha512, 256, 0}
+	{NID_sha512, 256, 0},
 #else
 	{NID_sha384, 192, EVP_sha384},
-	{NID_sha512, 256, EVP_sha512}
+	{NID_sha512, 256, EVP_sha512},
+#endif
+#ifdef OPENSSL_NO_DSTU
+	{NID_dstu34311, 256, 0}
+#else
+	{NID_dstu34311, 256, EVP_dstu34311}
 #endif
 };
 
@@ -3629,6 +3652,10 @@ static int tls12_get_pkey_idx(unsigned char sig_alg)
 #ifndef OPENSSL_NO_ECDSA
 	case TLSEXT_signature_ecdsa:
 		return SSL_PKEY_ECC;
+#endif
+#ifndef OPENSSL_NO_DSTU
+	case TLSEXT_signature_dstu:
+		return SSL_PKEY_DSTU;
 #endif
 		}
 	return -1;
@@ -4576,6 +4603,7 @@ void tls1_set_cert_validity(SSL *s)
 	tls1_check_chain(s, NULL, NULL, NULL, SSL_PKEY_DH_RSA);
 	tls1_check_chain(s, NULL, NULL, NULL, SSL_PKEY_DH_DSA);
 	tls1_check_chain(s, NULL, NULL, NULL, SSL_PKEY_ECC);
+	tls1_check_chain(s, NULL, NULL, NULL, SSL_PKEY_DSTU);
 	}
 /* User level utiity function to check a chain is suitable */
 int SSL_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain)

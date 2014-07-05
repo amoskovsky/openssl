@@ -208,3 +208,11 @@ const EVP_MD *EVP_sha512(void)
 	{ return(&sha512_md); }
 #endif	/* ifndef OPENSSL_NO_SHA512 */
 
+#ifndef OPENSSL_NO_DSTU
+const EVP_MD *EVP_dstu34311(void)
+{
+	return EVP_get_digestbynid(NID_dstu34311);
+}
+#endif
+
+

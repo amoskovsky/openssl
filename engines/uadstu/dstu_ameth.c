@@ -356,6 +356,11 @@ static int dstu_asn1_pkey_bits(const EVP_PKEY *pk)
     return 0;
     }
 
+static int dstu_asn1_pkey_security_bits(const EVP_PKEY *pk)
+	{
+	return dstu_asn1_pkey_bits(pk);
+	}
+
 static int dstu_asn1_pkey_size(const EVP_PKEY *pk)
     {
     DSTU_KEY* key = EVP_PKEY_get0((EVP_PKEY *) pk);
@@ -749,6 +754,7 @@ int dstu_asn1_meth_init(void)
 	    dstu_asn1_pkey_size, dstu_asn1_pkey_bits);
     EVP_PKEY_asn1_set_free(dstu_asn1_meth_le, dstu_asn1_pkey_free);
     EVP_PKEY_asn1_set_ctrl(dstu_asn1_meth_le, dstu_asn1_pkey_ctrl);
+    EVP_PKEY_asn1_set_security_bits(dstu_asn1_meth_le, dstu_asn1_pkey_security_bits);
 
     EVP_PKEY_asn1_set_param(dstu_asn1_meth_be, dstu_asn1_param_decode,
 	    dstu_asn1_param_encode, /*dstu_asn1_param_missing*/NULL,
@@ -760,6 +766,7 @@ int dstu_asn1_meth_init(void)
 	    dstu_asn1_pkey_size, dstu_asn1_pkey_bits);
     EVP_PKEY_asn1_set_free(dstu_asn1_meth_be, dstu_asn1_pkey_free);
     EVP_PKEY_asn1_set_ctrl(dstu_asn1_meth_be, dstu_asn1_pkey_ctrl);
+    EVP_PKEY_asn1_set_security_bits(dstu_asn1_meth_be, dstu_asn1_pkey_security_bits);
 
     return 1;
     }
