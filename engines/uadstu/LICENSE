@@ -1,4 +1,73 @@
-/* crypto/x509/x509type.c */
+
+  LICENSE ISSUES
+  ==============
+
+  The OpenSSL toolkit stays under a dual license, i.e. both the conditions of
+  the OpenSSL License and the original SSLeay license apply to the toolkit.
+  See below for the actual license texts. Actually both licenses are BSD-style
+  Open Source licenses. In case of any license issues related to OpenSSL
+  please contact openssl-core@openssl.org.
+
+  OpenSSL License
+  ---------------
+
+/* ====================================================================
+ * Copyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer. 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * 3. All advertising materials mentioning features or use of this
+ *    software must display the following acknowledgment:
+ *    "This product includes software developed by the OpenSSL Project
+ *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
+ *
+ * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
+ *    endorse or promote products derived from this software without
+ *    prior written permission. For written permission, please contact
+ *    openssl-core@openssl.org.
+ *
+ * 5. Products derived from this software may not be called "OpenSSL"
+ *    nor may "OpenSSL" appear in their names without prior written
+ *    permission of the OpenSSL Project.
+ *
+ * 6. Redistributions of any form whatsoever must retain the following
+ *    acknowledgment:
+ *    "This product includes software developed by the OpenSSL Project
+ *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
+ * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
+ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ * ====================================================================
+ *
+ * This product includes cryptographic software written by Eric Young
+ * (eay@cryptsoft.com).  This product includes software written by Tim
+ * Hudson (tjh@cryptsoft.com).
+ *
+ */
+
+ Original SSLeay License
+ -----------------------
+
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
  *
@@ -55,81 +124,3 @@
  * copied and put under another distribution licence
  * [including the GNU Public Licence.]
  */
-
-#include <stdio.h>
-#include "cryptlib.h"
-#include <openssl/evp.h>
-#include <openssl/objects.h>
-#include <openssl/x509.h>
-
-int X509_certificate_type(X509 *x, EVP_PKEY *pkey)
-	{
-	EVP_PKEY *pk;
-	int ret=0,i;
-
-	if (x == NULL) return(0);
-
-	if (pkey == NULL)
-		pk=X509_get_pubkey(x);
-	else
-		pk=pkey;
-
-	if (pk == NULL) return(0);
-
-	switch (pk->type)
-		{
-	case EVP_PKEY_RSA:
-		ret=EVP_PK_RSA|EVP_PKT_SIGN;
-/*		if (!sign only extension) */
-			ret|=EVP_PKT_ENC;
-	break;
-	case EVP_PKEY_DSA:
-		ret=EVP_PK_DSA|EVP_PKT_SIGN;
-		break;
-	case EVP_PKEY_EC:
-		ret=EVP_PK_EC|EVP_PKT_SIGN|EVP_PKT_EXCH;
-		break;
-	case EVP_PKEY_DH:
-		ret=EVP_PK_DH|EVP_PKT_EXCH;
-		break;	
-	case NID_id_GostR3410_94:
-	case NID_id_GostR3410_2001:
-		ret=EVP_PKT_EXCH|EVP_PKT_SIGN;
-		break;
-	case NID_dstu4145le:
-	case NID_dstu4145be:
-		ret=EVP_PKT_SIGN;
-		break;
-	default:
-		break;
-		}
-
-	i=OBJ_obj2nid(x->sig_alg->algorithm);
-	if (i && OBJ_find_sigid_algs(i, NULL, &i))
-		{
-
-		switch (i)
-			{
-		case NID_rsaEncryption:
-		case NID_rsa:
-			ret|=EVP_PKS_RSA;
-			break;
-		case NID_dsa:
-		case NID_dsa_2:
-			ret|=EVP_PKS_DSA;
-			break;
-		case NID_X9_62_id_ecPublicKey:
-			ret|=EVP_PKS_EC;
-			break;
-		default:
-			break;
-			}
-		}
-
-	if (EVP_PKEY_size(pk) <= 1024/8)/* /8 because it's 1024 bits we look
-					   for, not bytes */
-		ret|=EVP_PKT_EXP;
-	if(pkey==NULL) EVP_PKEY_free(pk);
-	return(ret);
-	}
-

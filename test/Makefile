@@ -87,6 +87,7 @@ FIPS_TEST_SUITE=fips_test_suite
 FIPS_CMACTEST=	fips_cmactest
 FIPS_ALGVS=	fips_algvs
 HEARTBEATTEST=  heartbeat_test
+DSTUTEST=	dstutest
 
 TESTS=		alltests
 
@@ -96,7 +97,7 @@ EXE=	$(BNTEST)$(EXE_EXT) $(ECTEST)$(EXE_EXT)  $(ECDSATEST)$(EXE_EXT) $(ECDHTEST)
 	$(DESTEST)$(EXE_EXT) $(SHATEST)$(EXE_EXT) $(SHA1TEST)$(EXE_EXT) $(SHA256TEST)$(EXE_EXT) $(SHA512TEST)$(EXE_EXT) \
 	$(MDC2TEST)$(EXE_EXT) $(RMDTEST)$(EXE_EXT) \
 	$(RANDTEST)$(EXE_EXT) $(DHTEST)$(EXE_EXT) $(ENGINETEST)$(EXE_EXT) \
-	$(GOST2814789TEST)$(EXE_EXT) \
+	$(GOST2814789TEST)$(EXE_EXT) $(DSTUTEST)$(EXE_EXT) \
 	$(BFTEST)$(EXE_EXT) $(CASTTEST)$(EXE_EXT) $(SSLTEST)$(EXE_EXT) \
 	$(EXPTEST)$(EXE_EXT) $(DSATEST)$(EXE_EXT) $(RSATEST)$(EXE_EXT) \
 	$(EVPTEST)$(EXE_EXT) $(IGETEST)$(EXE_EXT) $(JPAKETEST)$(EXE_EXT) $(SRPTEST)$(EXE_EXT) \
@@ -129,7 +130,7 @@ OBJ=	$(BNTEST).o $(ECTEST).o  $(ECDSATEST).o $(ECDHTEST).o $(IDEATEST).o \
 	$(FIPS_TEST_SUITE).o $(FIPS_DHVS).o $(FIPS_ECDSAVS).o \
 	$(FIPS_ECDHVS).o $(FIPS_CMACTEST).o $(FIPS_ALGVS).o \
 	$(EVPTEST).o $(IGETEST).o $(JPAKETEST).o $(V3NAMETEST).o \
-	$(GOST2814789TEST).o $(HEARTBEATTEST).o $(P5_CRPT2_TEST).o
+	$(GOST2814789TEST).o $(HEARTBEATTEST).o $(P5_CRPT2_TEST).o $(DSTUTEST).o
 
 SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(MD2TEST).c  $(MD4TEST).c $(MD5TEST).c \
@@ -145,7 +146,7 @@ SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
 	$(FIPS_TEST_SUITE).c $(FIPS_DHVS).c $(FIPS_ECDSAVS).c \
 	$(FIPS_ECDHVS).c $(FIPS_CMACTEST).c $(FIPS_ALGVS).c \
 	$(EVPTEST).c $(IGETEST).c $(JPAKETEST).c $(V3NAMETEST).c \
-	$(GOST2814789TEST).c $(HEARTBEATTEST).c $(P5_CRPT2_TEST).c
+	$(GOST2814789TEST).c $(HEARTBEATTEST).c $(P5_CRPT2_TEST).c $(DSTUTEST).c
 
 EXHEADER= 
 HEADER=	$(EXHEADER)
@@ -193,7 +194,7 @@ alltests: \
 	test_gen test_req test_pkcs7 test_verify test_dh test_dsa \
 	test_ss test_ca test_engine test_evp test_ssl test_tsa test_ige \
 	test_jpake test_srp test_cms test_v3name test_ocsp \
-	test_gost2814789 test_heartbeat test_p5_crpt2
+	test_gost2814789 test_heartbeat test_p5_crpt2 test_dstu
 
 test_evp: $(EVPTEST)$(EXE_EXT) evptests.txt
 	../util/shlib_wrap.sh ./$(EVPTEST) evptests.txt
@@ -254,6 +255,9 @@ test_rand: $(RANDTEST)$(EXE_EXT)
 
 test_gost2814789: $(GOST2814789TEST)$(EXE_EXT)
 	../util/shlib_wrap.sh ./$(GOST2814789TEST)
+	
+test_dstu: $(DSTUTEST)$(EXE_EXT)
+	../util/shlib_wrap.sh ./$(DSTUTEST)
 
 test_enc: ../apps/openssl$(EXE_EXT) testenc
 	@sh ./testenc
@@ -581,6 +585,9 @@ $(DESTEST)$(EXE_EXT): $(DESTEST).o $(DLIBCRYPTO)
 
 $(GOST2814789TEST)$(EXE_EXT): $(GOST2814789TEST).o $(DLIBCRYPTO)
 	@target=$(GOST2814789TEST); $(BUILD_CMD)
+	
+$(DSTUTEST)$(EXE_EXT): $(DSTUTEST).o $(DLIBCRYPTO)
+	@target=$(DSTUTEST); $(BUILD_CMD)
 
 $(RANDTEST)$(EXE_EXT): $(RANDTEST).o $(DLIBCRYPTO)
 	@target=$(RANDTEST); $(BUILD_CMD)

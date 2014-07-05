@@ -81,6 +81,7 @@ my @dirs = (
 "apps",
 "engines",
 "engines/ccgost",
+"engines/uadstu",
 "test",
 "tools"
 );
